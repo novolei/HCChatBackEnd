@@ -1,8 +1,12 @@
 {
-  "name": "chat-gateway",
-  "version": "1.0.0",
-  "type": "module",
-  "private": true,
-  "scripts": { "start": "node server.js" },
-  "dependencies": { "ws": "^8.18.0" }
+    "name": "chat-gateway",
+    "version": "1.0.0",
+    "private": true,
+    "scripts": {
+        "start": "node src/server.js",
+        "start:old": "node server.old.js"
+    },
+    "dependencies": {
+        "ws": "^8.18.0"
+    }
 }
