@@ -27,7 +27,25 @@ wss.on('connection', (ws) => {
 
     // 处理 nick 命令
     if (msgType === 'nick' && msg.nick) {
-      ws.nick = msg.nick;
+      const oldNick = ws.nick || 'guest';
+      const newNick = msg.nick;
+      ws.nick = newNick;
+      
+      // 如果用户已加入频道，广播昵称变更通知
+      if (ws.channel && oldNick !== newNick) {
+        broadcast(ws.channel, {
+          type: 'nick_change',
+          oldNick: oldNick,
+          newNick: newNick,
+          channel: ws.channel
+        });
+      }
+      
+      // 发送确认消息给当前用户
+      ws.send(JSON.stringify({ 
+        type: 'info', 
+        text: `昵称已更改为 ${newNick}` 
+      }));
       return;
     }
 
