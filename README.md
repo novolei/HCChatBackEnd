@@ -74,7 +74,8 @@ chmod +x scripts/*.sh
 - **[DEV_WORKFLOW.md](./DEV_WORKFLOW.md)** - 完整开发工作流
 - **[SERVICES.md](./SERVICES.md)** - 服务管理速查表
 - **[ADD_SERVICE.md](./ADD_SERVICE.md)** - 添加新服务指南
-- **[DEPLOY_AUTO_CONFIRM.md](./DEPLOY_AUTO_CONFIRM.md)** - 自动确认部署功能 🆕
+- **[AI_DEPLOY_GUIDE.md](./AI_DEPLOY_GUIDE.md)** - 🤖 AI 智能部署指南 ⭐
+- **[DEPLOY_AUTO_CONFIRM.md](./DEPLOY_AUTO_CONFIRM.md)** - 自动确认部署功能
 - **[../Product.md](../Product.md)** - 完整架构和 API 文档
 - **[../DEBUGGING.md](../DEBUGGING.md)** - iOS 客户端调试指南
 
