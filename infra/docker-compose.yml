@@ -1,0 +1,71 @@
+version: "3.9"
+services:
+  chat-gateway:
+    build: ../chat-gateway
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:10080:8080/tcp"   # WS: /chat-ws
+
+  message-service:
+    image: node:20-alpine
+    working_dir: /app
+    volumes:
+      - ../message-service:/app
+    command: ["sh","-c","npm config set registry https://registry.npmjs.org && npm install --omit=dev && npm start"]  # ← 不再用 npm ci
+    environment:
+      - NODE_ENV=production
+      - MINIO_ENDPOINT=https://s3.hc.go-lv.com
+      - MINIO_ROOT_USER=${MINIO_ROOT_USER}
+      - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD}
+      - MINIO_DEFAULT_BUCKET=hc-attachments
+      - LIVEKIT_API_KEY=${LIVEKIT_API_KEY}
+      - LIVEKIT_API_SECRET=${LIVEKIT_API_SECRET}
+      - LIVEKIT_WS_URL=wss://livekit.hc.go-lv.com
+      - CORS_ALLOW_ORIGINS=*
+    ports:
+      - "127.0.0.1:10092:3000"              # ✅ 必须有
+    restart: unless-stopped
+    depends_on:
+      - minio
+      - livekit
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:3000/healthz"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+
+  minio:
+    image: minio/minio:latest
+    command: server /data --console-address ":9001"
+    restart: unless-stopped
+    environment:
+      - MINIO_ROOT_USER=${MINIO_ROOT_USER}
+      - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD}
+      - MINIO_SERVER_URL=https://s3.hc.go-lv.com
+      - MINIO_BROWSER_REDIRECT_URL=https://mc.s3.hc.go-lv.com
+    volumes:
+      - minio_data:/data
+    ports:
+      - "127.0.0.1:10090:9000/tcp"   # S3 API
+      - "127.0.0.1:10091:9001/tcp"   # Console
+
+  livekit:
+    image: livekit/livekit-server:latest
+    command: ["--config","/etc/livekit/livekit.yaml"]
+    volumes:
+      - /root/hc-stack/infra/livekit.yaml:/etc/livekit/livekit.yaml:ro
+    ports:
+      - "127.0.0.1:17880:17880/tcp"  # signaling
+      - "127.0.0.1:17881:17881/tcp"  # rtc tcp
+      - "51000-52000:51000-52000/udp" # media udp (public)
+    restart: unless-stopped
+
+  coturn:
+    image: coturn/coturn:latest
+    network_mode: "host"             # TURN 推荐 host 网络
+    restart: unless-stopped
+    volumes:
+      - ./coturn/turnserver.conf:/etc/coturn/turnserver.conf:ro
+
+volumes:
+  minio_data: {}

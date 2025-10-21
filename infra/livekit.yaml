@@ -1,0 +1,18 @@
+port: 17880
+rtc:
+  tcp_port: 17881
+  port_range_start: 51000
+  port_range_end: 52000
+# use_external_ip: true
+
+    #turn_servers:
+    # - host: hc.go-lv.com
+    #port: 14788
+    #protocol: udp
+    #- host: hc.go-lv.com
+    #port: 14788
+    #protocol: tcp
+
+# LiveKit 不会在 YAML 里展开 env；请手动替换下面两项
+keys:
+  LK_7K2X9Q0E4M8H1C5V3B6D1F2A9Y4T7R0: j1gBs8eFhW3XyQ7pM5n2N9pQ2e8v4R9s1dkH0M4mW6cZl2Qd8Cti5w==
