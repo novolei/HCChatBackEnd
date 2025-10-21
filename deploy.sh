@@ -3,6 +3,7 @@
 # 用法: ./deploy.sh <服务名> [选项]
 # 示例: ./deploy.sh chat-gateway -y
 #      ./deploy.sh chat-gateway --yes  # 自动确认，不需要手动输入
+#      AI_MODE=true ./deploy.sh chat-gateway  # AI 模式（完全自动化）
 
 set -e  # 遇到错误立即退出
 
@@ -12,6 +13,7 @@ VPS_USER="${VPS_USER:-root}"
 VPS_PATH="${VPS_PATH:-/root/hc-stack}"
 GITHUB_BRANCH="${GITHUB_BRANCH:-main}"
 AUTO_CONFIRM=false  # 是否自动确认
+AI_MODE="${AI_MODE:-false}"  # AI 模式（完全自动化，不询问任何问题）
 
 # ============ 服务定义 ============
 # 可部署的服务（我们自己开发的服务）
@@ -87,6 +89,7 @@ show_usage() {
     echo ""
     echo "用法:"
     echo "    ./deploy.sh <服务名> [选项]"
+    echo "    AI_MODE=true ./deploy.sh <服务名>  # AI 模式"
     echo ""
     echo "可部署的服务:"
     
@@ -103,19 +106,18 @@ show_usage() {
     echo "    - config              只更新配置文件（不重启）"
     echo ""
     echo "选项:"
-    echo "    -y, --yes             自动确认，不需要手动输入"
+    echo "    -y, --yes             自动确认部署，但仍询问日志查看"
     echo ""
     echo "示例:"
-    echo "    ./deploy.sh chat-gateway -y"
-    echo "    ./deploy.sh chat-gateway --yes"
-    echo "    ./deploy.sh message-service -y"
-    echo "    ./deploy.sh all -y"
-    echo "    ./deploy.sh config  # 只更新配置，不重启服务"
+    echo "    ./deploy.sh chat-gateway -y          # 用户快速部署"
+    echo "    AI_MODE=true ./deploy.sh chat-gateway # AI 完全自动化"
+    echo "    ./ai-deploy.sh chat-gateway          # AI 智能部署（推荐）"
     echo ""
     echo "环境变量:"
     echo "    VPS_HOST    VPS 地址（默认: $VPS_HOST）"
     echo "    VPS_USER    SSH 用户（默认: $VPS_USER）"
     echo "    VPS_PATH    VPS 代码路径（默认: $VPS_PATH）"
+    echo "    AI_MODE     AI 模式（true=完全自动化，false=用户模式）"
     echo ""
     echo "所有服务列表:"
     for item in "${ALL_SERVICES[@]}"; do
@@ -232,11 +234,12 @@ show_logs() {
         return
     fi
     
-    # 如果自动确认，直接跳过日志查看
-    if [[ "$AUTO_CONFIRM" == true ]]; then
+    # AI 模式：完全自动化，不询问
+    if [[ "$AI_MODE" == "true" ]]; then
         return
     fi
     
+    # 用户模式：即使使用 -y，仍然询问是否查看实时日志
     echo ""
     read -p "是否实时查看日志？[y/N] " -n 1 -r
     echo
@@ -326,7 +329,10 @@ main() {
     echo ""
     
     # 确认部署
-    if [[ "$AUTO_CONFIRM" != true ]]; then
+    if [[ "$AI_MODE" == "true" ]]; then
+        echo "🤖 AI 模式（完全自动化）"
+        echo ""
+    elif [[ "$AUTO_CONFIRM" != true ]]; then
         read -p "确认部署？[Y/n] " -n 1 -r
         echo
         if [[ $REPLY =~ ^[Nn]$ ]]; then
