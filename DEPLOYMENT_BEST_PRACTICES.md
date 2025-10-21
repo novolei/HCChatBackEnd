@@ -75,6 +75,7 @@ ssh root@mx.go-lv.com
 cd /root/hc-stack
 git fetch origin
 git reset --hard origin/main  # 强制同步到远程版本
+cd infra  # 进入 Docker Compose 目录
 docker compose restart chat-gateway
 docker compose logs -f chat-gateway
 ```
