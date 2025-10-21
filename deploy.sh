@@ -326,11 +326,16 @@ main() {
     echo ""
     
     # 确认部署
-    read -p "确认部署？[Y/n] " -n 1 -r
-    echo
-    if [[ $REPLY =~ ^[Nn]$ ]]; then
-        print_warning "部署已取消"
-        exit 0
+    if [[ "$AUTO_CONFIRM" != true ]]; then
+        read -p "确认部署？[Y/n] " -n 1 -r
+        echo
+        if [[ $REPLY =~ ^[Nn]$ ]]; then
+            print_warning "部署已取消"
+            exit 0
+        fi
+    else
+        echo "🤖 自动确认模式（-y/--yes）"
+        echo ""
     fi
     
     # 步骤 1: 检查 Git 状态
