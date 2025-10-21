@@ -11,6 +11,50 @@ VPS_USER="${VPS_USER:-root}"
 VPS_PATH="${VPS_PATH:-/root/hc-stack}"
 GITHUB_BRANCH="${GITHUB_BRANCH:-main}"
 
+# ============ 服务定义 ============
+# 可部署的服务（我们自己开发的服务）
+DEPLOYABLE_SERVICES=(
+    "chat-gateway:WebSocket 聊天网关"
+    "message-service:REST API 服务"
+)
+
+# 所有服务（包括第三方服务）
+ALL_SERVICES=(
+    "chat-gateway:WebSocket 聊天网关"
+    "message-service:REST API 服务"
+    "minio:S3 对象存储"
+    "livekit:WebRTC 音视频服务"
+    "coturn:TURN/STUN 服务"
+)
+
+# 特殊操作
+SPECIAL_ACTIONS=("all" "config")
+
+# 获取服务描述
+get_service_desc() {
+    local service_name="$1"
+    for item in "${DEPLOYABLE_SERVICES[@]}"; do
+        local name=$(echo "$item" | cut -d: -f1)
+        local desc=$(echo "$item" | cut -d: -f2)
+        if [[ "$name" == "$service_name" ]]; then
+            echo "$desc"
+            return
+        fi
+    done
+}
+
+# 检查服务是否可部署
+is_deployable() {
+    local service_name="$1"
+    for item in "${DEPLOYABLE_SERVICES[@]}"; do
+        local name=$(echo "$item" | cut -d: -f1)
+        if [[ "$name" == "$service_name" ]]; then
+            return 0
+        fi
+    done
+    return 1
+}
+
 # 颜色定义
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -37,29 +81,42 @@ print_error() {
 }
 
 show_usage() {
-    cat << EOF
-🚀 HChat Backend 部署脚本
-
-用法:
-    ./deploy.sh <服务名> [commit消息]
-
-服务名:
-    - chat-gateway      WebSocket 聊天网关
-    - message-service   REST API 服务
-    - all              部署所有服务
-    - config           只更新配置文件
-
-示例:
-    ./deploy.sh chat-gateway "fix: 修复房间清理逻辑"
-    ./deploy.sh message-service "feat: 添加健康检查端点"
-    ./deploy.sh all "chore: 更新依赖"
-    ./deploy.sh config  # 只更新配置，不重启服务
-
-环境变量:
-    VPS_HOST    VPS 地址（默认: hc.go-lv.com）
-    VPS_USER    SSH 用户（默认: root）
-    VPS_PATH    VPS 代码路径（默认: /root/hc-stack/HCChatBackEnd）
-EOF
+    echo "🚀 HChat Backend 部署脚本"
+    echo ""
+    echo "用法:"
+    echo "    ./deploy.sh <服务名> [commit消息]"
+    echo ""
+    echo "可部署的服务:"
+    
+    # 动态生成服务列表
+    for item in "${DEPLOYABLE_SERVICES[@]}"; do
+        local service=$(echo "$item" | cut -d: -f1)
+        local desc=$(echo "$item" | cut -d: -f2)
+        printf "    - %-18s %s\n" "$service" "$desc"
+    done
+    
+    echo ""
+    echo "特殊操作:"
+    echo "    - all                 部署所有服务"
+    echo "    - config              只更新配置文件（不重启）"
+    echo ""
+    echo "示例:"
+    echo "    ./deploy.sh chat-gateway \"fix: 修复房间清理逻辑\""
+    echo "    ./deploy.sh message-service \"feat: 添加健康检查端点\""
+    echo "    ./deploy.sh all \"chore: 更新依赖\""
+    echo "    ./deploy.sh config  # 只更新配置，不重启服务"
+    echo ""
+    echo "环境变量:"
+    echo "    VPS_HOST    VPS 地址（默认: $VPS_HOST）"
+    echo "    VPS_USER    SSH 用户（默认: $VPS_USER）"
+    echo "    VPS_PATH    VPS 代码路径（默认: $VPS_PATH）"
+    echo ""
+    echo "所有服务列表:"
+    for item in "${ALL_SERVICES[@]}"; do
+        local service=$(echo "$item" | cut -d: -f1)
+        local desc=$(echo "$item" | cut -d: -f2)
+        printf "    - %-18s %s\n" "$service" "$desc"
+    done
 }
 
 # 检查 Git 状态
@@ -184,21 +241,45 @@ main() {
     local service="$1"
     local commit_msg="$2"
     
+    # 处理帮助命令
+    if [[ "$service" == "-h" || "$service" == "--help" ]]; then
+        show_usage
+        exit 0
+    fi
+    
     # 验证服务名
-    case "$service" in
-        chat-gateway|message-service|all|config)
-            ;;
-        -h|--help)
-            show_usage
-            exit 0
-            ;;
-        *)
-            print_error "未知服务: $service"
-            echo ""
-            show_usage
-            exit 1
-            ;;
-    esac
+    local valid=false
+    
+    # 检查是否是可部署的服务
+    if is_deployable "$service"; then
+        valid=true
+    fi
+    
+    # 检查是否是特殊操作
+    for a in "${SPECIAL_ACTIONS[@]}"; do
+        if [[ "$service" == "$a" ]]; then
+            valid=true
+            break
+        fi
+    done
+    
+    if [[ "$valid" == false ]]; then
+        print_error "未知服务: $service"
+        echo ""
+        echo "可用的服务："
+        for item in "${DEPLOYABLE_SERVICES[@]}"; do
+            local s=$(echo "$item" | cut -d: -f1)
+            echo "  - $s"
+        done
+        echo ""
+        echo "特殊操作："
+        for a in "${SPECIAL_ACTIONS[@]}"; do
+            echo "  - $a"
+        done
+        echo ""
+        echo "使用 --help 查看详细帮助"
+        exit 1
+    fi
     
     echo ""
     echo "╔════════════════════════════════════════╗"

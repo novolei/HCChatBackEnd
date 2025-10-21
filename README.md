@@ -69,6 +69,8 @@ chmod +x scripts/*.sh
 
 - **[QUICKSTART.md](./QUICKSTART.md)** - 5 分钟快速设置指南
 - **[DEV_WORKFLOW.md](./DEV_WORKFLOW.md)** - 完整开发工作流
+- **[SERVICES.md](./SERVICES.md)** - 服务管理速查表
+- **[ADD_SERVICE.md](./ADD_SERVICE.md)** - 添加新服务指南
 - **[../Product.md](../Product.md)** - 完整架构和 API 文档
 - **[../DEBUGGING.md](../DEBUGGING.md)** - iOS 客户端调试指南
 
@@ -86,43 +88,42 @@ chmod +x scripts/*.sh
 
 ---
 
-## 🛠️ 日常操作
+## 🛠️ 服务管理
 
-### 查看日志
+### 使用服务管理工具（推荐）
 
 ```bash
-# 实时日志
+# 查看所有服务状态
+./service-manager.sh list
+
+# 查看实时日志
+./service-manager.sh logs chat-gateway
+./service-manager.sh logs message-service
+
+# 测试服务健康
+./service-manager.sh test
+
+# 创建新服务
+./service-manager.sh new my-service
+```
+
+### 手动操作
+
+```bash
+# 查看日志
 docker compose logs -f chat-gateway
-docker compose logs -f message-service
-
-# 最近 100 行
 docker compose logs --tail=100
-```
 
-### 重启服务
-
-```bash
-# 重启单个服务
+# 重启服务
 docker compose restart chat-gateway
+docker compose restart  # 所有服务
 
-# 重启所有服务
-docker compose restart
-
-# 重新构建并启动
+# 重新构建
 docker compose up -d --build chat-gateway
-```
 
-### 服务状态
-
-```bash
-# 查看运行状态
+# 查看状态
 docker compose ps
-
-# 查看资源占用
 docker stats
-
-# 查看配置
-docker compose config
 ```
 
 ---
