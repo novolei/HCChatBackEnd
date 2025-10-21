@@ -196,13 +196,13 @@ deploy_to_vps() {
         cd infra
         
         if [[ "$service" == "all" ]]; then
-            echo "🔄 重启所有服务..."
-            docker compose restart
+            echo "🔄 重新构建并重启所有服务..."
+            docker compose up -d --build
         elif [[ "$service" == "config" ]]; then
             echo "📝 配置已更新（未重启服务）"
         else
-            echo "🔄 重启服务: $service..."
-            docker compose restart $service
+            echo "🔄 重新构建并重启服务: $service..."
+            docker compose up -d --build $service
         fi
         
         echo ""
