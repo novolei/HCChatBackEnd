@@ -1,7 +1,8 @@
 #!/bin/bash
 # HChat Backend 快速部署脚本
-# 用法: ./deploy.sh <服务名> <commit消息>
-# 示例: ./deploy.sh chat-gateway "fix: 修复消息广播问题"
+# 用法: ./deploy.sh <服务名> [选项]
+# 示例: ./deploy.sh chat-gateway -y
+#      ./deploy.sh chat-gateway --yes  # 自动确认，不需要手动输入
 
 set -e  # 遇到错误立即退出
 
@@ -10,6 +11,7 @@ VPS_HOST="${VPS_HOST:-mx.go-lv.com}"
 VPS_USER="${VPS_USER:-root}"
 VPS_PATH="${VPS_PATH:-/root/hc-stack}"
 GITHUB_BRANCH="${GITHUB_BRANCH:-main}"
+AUTO_CONFIRM=false  # 是否自动确认
 
 # ============ 服务定义 ============
 # 可部署的服务（我们自己开发的服务）
@@ -84,7 +86,7 @@ show_usage() {
     echo "🚀 HChat Backend 部署脚本"
     echo ""
     echo "用法:"
-    echo "    ./deploy.sh <服务名> [commit消息]"
+    echo "    ./deploy.sh <服务名> [选项]"
     echo ""
     echo "可部署的服务:"
     
@@ -100,10 +102,14 @@ show_usage() {
     echo "    - all                 部署所有服务"
     echo "    - config              只更新配置文件（不重启）"
     echo ""
+    echo "选项:"
+    echo "    -y, --yes             自动确认，不需要手动输入"
+    echo ""
     echo "示例:"
-    echo "    ./deploy.sh chat-gateway \"fix: 修复房间清理逻辑\""
-    echo "    ./deploy.sh message-service \"feat: 添加健康检查端点\""
-    echo "    ./deploy.sh all \"chore: 更新依赖\""
+    echo "    ./deploy.sh chat-gateway -y"
+    echo "    ./deploy.sh chat-gateway --yes"
+    echo "    ./deploy.sh message-service -y"
+    echo "    ./deploy.sh all -y"
     echo "    ./deploy.sh config  # 只更新配置，不重启服务"
     echo ""
     echo "环境变量:"
@@ -226,6 +232,11 @@ show_logs() {
         return
     fi
     
+    # 如果自动确认，直接跳过日志查看
+    if [[ "$AUTO_CONFIRM" == true ]]; then
+        return
+    fi
+    
     echo ""
     read -p "是否实时查看日志？[y/N] " -n 1 -r
     echo
@@ -246,13 +257,27 @@ main() {
     fi
     
     local service="$1"
-    local commit_msg="$2"
+    local commit_msg=""
     
     # 处理帮助命令
     if [[ "$service" == "-h" || "$service" == "--help" ]]; then
         show_usage
         exit 0
     fi
+    
+    # 解析剩余参数，检查是否有 -y 或 --yes
+    shift  # 跳过第一个参数（服务名）
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            -y|--yes)
+                AUTO_CONFIRM=true
+                ;;
+            *)
+                commit_msg="$1"
+                ;;
+        esac
+        shift
+    done
     
     # 验证服务名
     local valid=false
