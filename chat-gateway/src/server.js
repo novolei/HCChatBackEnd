@@ -2,14 +2,27 @@
 // WebSocket 聊天网关入口文件
 // 重构版本：简洁、分层、易维护
 
+const http = require('http');
 const WebSocket = require('ws');
 const config = require('./config');
 const { handleMessage, handleConnection, handleClose } = require('./handlers');
 
-// 创建 WebSocket 服务器
-const wss = new WebSocket.Server({ port: config.PORT });
+// 创建 HTTP 服务器
+const server = http.createServer((req, res) => {
+  // 对非 WebSocket 请求返回 404
+  res.writeHead(404);
+  res.end('Not Found');
+});
 
-console.log(`✅ chat-gateway listening on :${config.PORT}`);
+// 创建 WebSocket 服务器，绑定到 HTTP 服务器，监听 /chat-ws 路径
+const wss = new WebSocket.Server({ 
+  server,
+  path: '/chat-ws'
+});
+
+server.listen(config.PORT, () => {
+  console.log(`✅ chat-gateway listening on :${config.PORT} (path: /chat-ws)`);
+});
 
 // 处理新连接
 wss.on('connection', (ws) => {
