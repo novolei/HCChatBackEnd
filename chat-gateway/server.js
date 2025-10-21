@@ -10,7 +10,15 @@ function broadcast(channel, packet) {
   const set = rooms.get(channel);
   if (!set) return;
   const text = JSON.stringify(packet);
-  for (const ws of set) if (ws.readyState === ws.OPEN) ws.send(text);
+  for (const ws of set) {
+    if (ws.readyState === 1) {  // 1 = WebSocket.OPEN
+      try {
+        ws.send(text);
+      } catch (err) {
+        console.error('broadcast send error:', err.message);
+      }
+    }
+  }
 }
 
 wss.on('connection', (ws) => {
@@ -42,10 +50,16 @@ wss.on('connection', (ws) => {
       }
       
       // 发送确认消息给当前用户
-      ws.send(JSON.stringify({ 
-        type: 'info', 
-        text: `昵称已更改为 ${newNick}` 
-      }));
+      if (ws.readyState === 1) {
+        try {
+          ws.send(JSON.stringify({ 
+            type: 'info', 
+            text: `昵称已更改为 ${newNick}` 
+          }));
+        } catch (err) {
+          console.error('send nick confirmation error:', err.message);
+        }
+      }
       return;
     }
 
@@ -55,19 +69,33 @@ wss.on('connection', (ws) => {
       ws.nick = ws.nick || msg.nick || 'guest';
       if (!rooms.has(ws.channel)) rooms.set(ws.channel, new Set());
       rooms.get(ws.channel).add(ws);
-      ws.send(JSON.stringify({ type: 'info', text: `joined #${ws.channel}` }));
+      
+      if (ws.readyState === 1) {
+        try {
+          ws.send(JSON.stringify({ type: 'info', text: `joined #${ws.channel}` }));
+        } catch (err) {
+          console.error('send join confirmation error:', err.message);
+        }
+      }
       return;
     }
 
     // 处理 who 命令（在线用户列表）
     if (msgType === 'who' && ws.channel) {
       const users = Array.from(rooms.get(ws.channel) || []).map(c => c.nick || 'guest');
-      ws.send(JSON.stringify({ 
-        type: 'presence', 
-        room: ws.channel, 
-        users, 
-        count: users.length 
-      }));
+      
+      if (ws.readyState === 1) {
+        try {
+          ws.send(JSON.stringify({ 
+            type: 'presence', 
+            room: ws.channel, 
+            users, 
+            count: users.length 
+          }));
+        } catch (err) {
+          console.error('send presence error:', err.message);
+        }
+      }
       return;
     }
 
