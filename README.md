@@ -57,8 +57,11 @@ ssh-copy-id your-user@hc.go-lv.com
 chmod +x deploy.sh
 chmod +x scripts/*.sh
 
-# 3. 一键部署
-./deploy.sh chat-gateway "fix: 修复某个问题"
+# 3. 一键部署（自动确认，推荐）
+./deploy.sh chat-gateway -y
+
+# 或手动确认模式
+./deploy.sh chat-gateway
 ```
 
 📖 **详细教程：** [QUICKSTART.md](./QUICKSTART.md)
@@ -71,6 +74,7 @@ chmod +x scripts/*.sh
 - **[DEV_WORKFLOW.md](./DEV_WORKFLOW.md)** - 完整开发工作流
 - **[SERVICES.md](./SERVICES.md)** - 服务管理速查表
 - **[ADD_SERVICE.md](./ADD_SERVICE.md)** - 添加新服务指南
+- **[DEPLOY_AUTO_CONFIRM.md](./DEPLOY_AUTO_CONFIRM.md)** - 自动确认部署功能 🆕
 - **[../Product.md](../Product.md)** - 完整架构和 API 文档
 - **[../DEBUGGING.md](../DEBUGGING.md)** - iOS 客户端调试指南
 
