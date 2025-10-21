@@ -5,6 +5,9 @@ const joinHandler = require('./joinHandler');
 const nickHandler = require('./nickHandler');
 const whoHandler = require('./whoHandler');
 const messageHandler = require('./messageHandler');
+const statusUpdateHandler = require('./statusUpdateHandler');
+const { handleAddReaction, handleRemoveReaction } = require('./reactionHandler');
+const handleReadReceipt = require('./readReceiptHandler'); // ✨ P1: 已读回执
 const roomManager = require('../services/roomManager');
 const { broadcast } = require('../services/broadcaster');
 
@@ -39,6 +42,22 @@ function handleMessage(ws, data) {
     case 'message':
     case 'chat':
       messageHandler(ws, msg);
+      break;
+      
+    case 'status_update':
+      statusUpdateHandler(ws, msg);
+      break;
+      
+    case 'add_reaction':
+      handleAddReaction(ws, msg);
+      break;
+      
+    case 'remove_reaction':
+      handleRemoveReaction(ws, msg);
+      break;
+      
+    case 'read_receipt': // ✨ P1: 已读回执
+      handleReadReceipt(ws, msg);
       break;
       
     default:
