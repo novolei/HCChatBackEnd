@@ -2,7 +2,7 @@
 // 处理聊天消息
 
 const { broadcast } = require('../services/broadcaster');
-const { roomManager } = require('../services/roomManager');
+const roomManager = require('../services/roomManager');
 
 function handleMessage(ws, msg) {
   if (!ws.channel || typeof msg.text !== 'string') return;

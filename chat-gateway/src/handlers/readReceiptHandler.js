@@ -1,6 +1,6 @@
 // handlers/readReceiptHandler.js
 const { broadcast } = require('../services/broadcaster');
-const { roomManager } = require('../services/roomManager');
+const roomManager = require('../services/roomManager');
 
 function handleReadReceipt(ws, msg) {
   const { messageId, channel, userId, timestamp } = msg;
@@ -11,7 +11,7 @@ function handleReadReceipt(ws, msg) {
   }
   
   // 广播已读回执给频道中的所有用户（除了发送者自己）
-  const roomClients = roomManager.getRoomClients(channel);
+  const roomClients = roomManager.getRoomUsers(channel);
   roomClients.forEach(client => {
     if (client !== ws && client.readyState === 1) {
       try {
