@@ -8,7 +8,7 @@ echo ""
 # 获取当前配置
 CURRENT_VPS_HOST="${VPS_HOST:-mx.go-lv.com}"
 CURRENT_VPS_USER="${VPS_USER:-root}"
-CURRENT_VPS_PATH="${VPS_PATH:-/root/hc-stack/HCChatBackEnd}"
+CURRENT_VPS_PATH="${VPS_PATH:-/root/hc-stack}"
 
 echo "当前配置："
 echo "  VPS 主机: $CURRENT_VPS_HOST"

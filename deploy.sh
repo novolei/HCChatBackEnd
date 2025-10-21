@@ -8,7 +8,7 @@ set -e  # 遇到错误立即退出
 # ============ 配置区域 ============
 VPS_HOST="${VPS_HOST:-mx.go-lv.com}"
 VPS_USER="${VPS_USER:-root}"
-VPS_PATH="${VPS_PATH:-/root/hc-stack/HCChatBackEnd}"
+VPS_PATH="${VPS_PATH:-/root/hc-stack}"
 GITHUB_BRANCH="${GITHUB_BRANCH:-main}"
 
 # 颜色定义
