@@ -6,11 +6,14 @@ const wss = new WebSocketServer({ server, path: '/chat-ws' });
 
 const rooms = new Map(); // channel -> Set<WebSocket>
 
-function broadcast(channel, packet) {
+function broadcast(channel, packet, excludeWs = null) {
   const set = rooms.get(channel);
   if (!set) return;
   const text = JSON.stringify(packet);
   for (const ws of set) {
+    // ✅ 排除指定的 WebSocket 连接（通常是发送者自己）
+    if (ws === excludeWs) continue;
+    
     if (ws.readyState === 1) {  // 1 = WebSocket.OPEN
       try {
         ws.send(text);
@@ -70,6 +73,14 @@ wss.on('connection', (ws) => {
       if (!rooms.has(ws.channel)) rooms.set(ws.channel, new Set());
       rooms.get(ws.channel).add(ws);
       
+      // ✅ 广播给频道内其他用户（不包括自己）
+      broadcast(ws.channel, {
+        type: 'user_joined',
+        nick: ws.nick,
+        channel: ws.channel
+      }, ws);  // 传入 ws 表示排除自己
+      
+      // 发送确认消息给当前用户
       if (ws.readyState === 1) {
         try {
           ws.send(JSON.stringify({ type: 'info', text: `joined #${ws.channel}` }));
@@ -114,6 +125,13 @@ wss.on('connection', (ws) => {
 
   ws.on('close', () => {
     if (ws.channel && rooms.get(ws.channel)) {
+      // ✅ 广播用户离开通知（在删除之前）
+      broadcast(ws.channel, {
+        type: 'user_left',
+        nick: ws.nick || 'guest',
+        channel: ws.channel
+      }, ws);  // 排除自己（虽然已经断开）
+      
       rooms.get(ws.channel).delete(ws);
       if (rooms.get(ws.channel).size === 0) rooms.delete(ws.channel);
     }
