@@ -174,8 +174,15 @@ deploy_to_vps() {
         echo "📦 切换到项目目录..."
         cd ${VPS_PATH}
         
+        echo "🔍 检查本地状态..."
+        if [[ -n \$(git status -s) ]]; then
+            echo "⚠️  检测到本地修改，自动保存并同步..."
+            git stash save "自动备份 - 部署前 \$(date +'%Y-%m-%d %H:%M:%S')" || true
+        fi
+        
         echo "🔄 拉取最新代码..."
-        git pull origin ${GITHUB_BRANCH}
+        git fetch origin
+        git reset --hard origin/${GITHUB_BRANCH}
         
         echo "🐳 进入 Docker 目录..."
         cd infra
