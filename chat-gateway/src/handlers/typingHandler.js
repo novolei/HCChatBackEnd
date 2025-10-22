@@ -27,13 +27,17 @@ function handleTyping(ws, msg) {
     nick: nickname
   };
 
-  // 获取房间内的所有用户
+  // 获取房间内的所有用户 WebSocket 连接
   const roomUsers = roomManager.getRoomUsers(channel);
   
   // 广播给除了发送者之外的所有用户
-  for (const user of roomUsers) {
-    if (user.ws !== ws && user.ws.readyState === 1) { // WebSocket.OPEN = 1
-      user.ws.send(JSON.stringify(broadcast));
+  for (const userWs of roomUsers) {
+    if (userWs !== ws && userWs.readyState === 1) { // WebSocket.OPEN = 1
+      try {
+        userWs.send(JSON.stringify(broadcast));
+      } catch (error) {
+        console.error('❌ 发送 typing 事件失败:', error.message);
+      }
     }
   }
 }
