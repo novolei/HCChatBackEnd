@@ -8,6 +8,7 @@ const messageHandler = require('./messageHandler');
 const statusUpdateHandler = require('./statusUpdateHandler');
 const { handleAddReaction, handleRemoveReaction } = require('./reactionHandler');
 const handleReadReceipt = require('./readReceiptHandler'); // ✨ P1: 已读回执
+const { handleTyping } = require('./typingHandler'); // 正在输入
 const roomManager = require('../services/roomManager');
 const { broadcast } = require('../services/broadcaster');
 
@@ -58,6 +59,10 @@ function handleMessage(ws, data) {
       
     case 'read_receipt': // ✨ P1: 已读回执
       handleReadReceipt(ws, msg);
+      break;
+      
+    case 'typing': // 正在输入
+      handleTyping(ws, msg);
       break;
       
     default:
