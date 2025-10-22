@@ -22,7 +22,7 @@ function handleTyping(ws, msg) {
 
   // 广播给同一频道的其他用户（不包括发送者自己）
   const broadcast = {
-    cmd: 'typing',
+    type: 'typing',
     channel: channel,
     nick: nickname
   };
