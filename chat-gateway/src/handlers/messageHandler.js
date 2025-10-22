@@ -42,6 +42,14 @@ function handleMessage(ws, msg) {
   
   broadcast(ws.channel, broadcastMsg);
   
+  // 发送停止输入通知（用户已发送消息）
+  const typingStoppedMsg = {
+    type: 'typing_stopped',
+    channel: ws.channel,
+    nick: ws.nick || 'guest'
+  };
+  broadcast(ws.channel, typingStoppedMsg);
+  
   // ✨ P0: 发送 delivered 确认（已送达其他用户）
   const channelUsers = roomManager.getRoomUsers(ws.channel);
   const deliveredTo = [];
